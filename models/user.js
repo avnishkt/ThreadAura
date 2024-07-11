@@ -1,39 +1,43 @@
 const mongoose = require('mongoose');
-const schema = mongoose.Schema();
+const Schema = mongoose.Schema;
 
-const userSchema = new schema({
-    username: {
+const userSchema = new Schema({
+    name: {
         type: String,
         required: true,
-        minlength: 3,
     },
     email: {
         type: String,
         required: true,
-        // unique: true,
-        validate: {
-            validator: function (value) {
-                const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-                return emailRegex.test(value);
-            },
-            message: props => `${props.value} is not a valid email address.`
-        }
-
+        unique: true,
     },
     password: {
         type: String,
         required: true
+    },
+    avatar: {
+        public_id: {
+            type: String,
+            required: true,
+        },
+        url: {
+            type: String,
+            required: true,
+        },
+    },
+    roles: {
+        User: {
+            type: Number,
+            default: 2001
+        },
+        Editor: Number,
+        Admin: Number
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
-    ,
-    profilePic: {
-        type: String
-    }
-    ,
+});
 
-}
-    , {
-        timestamps: true
-    })
-
-const user = mongoose.model('user', userSchema);
-module.exports = user;
+// Corrected export statement
+module.exports = mongoose.model('User', userSchema);
