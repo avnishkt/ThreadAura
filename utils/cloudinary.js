@@ -12,30 +12,48 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET 
 });
 
-const uploadCloudinary = async (localFilePath) => {
+const uploadMultipleImages = async (localFilePaths) => {
+    const uploadPromises = localFilePaths.map(async (filePath) => {
+        return await uploadCloudinary(filePath);
+    });
+
     try {
-        if (!localFilePath) return null;
-
-        const response = await cloudinary.uploader.upload(localFilePath.path, {
-            resource_type: 'auto'
-        });
-        console.log(response);
-
-        // Delete local file after uploading
-        fs.unlink(localFilePath.path, (err) => {
-            if (err) {
-                console.error("Error deleting local file:", err);
-            } else {
-                console.log("Local file deleted successfully.");
-            }
-        });
-
-        return response;
+        const responses = await Promise.all(uploadPromises);
+        return responses;
     } catch (error) {
-        fs.unlinkSync(localFilePath.path);
-        console.error("Error uploading image to Cloudinary:", error);
+        console.error("Error uploading multiple images to Cloudinary:", error);
         return null;
     }
 };
 
-module.exports=uploadCloudinary;
+const deleteCloudinaryImage = async (publicId) => {
+    try {
+        const response = await cloudinary.uploader.destroy(publicId);
+        console.log(response);
+        return response;
+    } catch (error) {
+        console.error("Error deleting image from Cloudinary:", error);
+        return null;
+    }
+};
+
+const deleteMultipleImages = async (publicIds) => {
+    const deletePromises = publicIds.map(async (id) => {
+        return await deleteCloudinaryImage(id);
+    });
+
+    try {
+        const responses = await Promise.all(deletePromises);
+        return responses;
+    } catch (error) {
+        console.error("Error deleting multiple images from Cloudinary:", error);
+        return null;
+    }
+};
+
+module.exports = {
+    uploadCloudinary,
+    uploadMultipleImages,
+    deleteCloudinaryImage,
+    deleteMultipleImages
+};
